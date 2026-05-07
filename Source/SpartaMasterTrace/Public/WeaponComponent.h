@@ -2,42 +2,23 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "WeaponStruct.h"
 #include "WeaponComponent.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SPARTAMASTERTRACE_API UWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	UWeaponComponent();
+	void Fire(); // 캐릭터가 호출할 함수
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void FireShotgun();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Config")
-	FShotgunData CurrentWeaponData;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf<class AWeaponBase> WeaponClass;
 
 protected:
-	void BeginPlay() override;
+	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Visual")
-	UStaticMeshComponent* WeaponMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	USoundBase* FireSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	UParticleSystem* MuzzleFlash;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-	UParticleSystem* ImpactEffect;
-
-	void ApplyRecoil();
-
-	FVector GetSpreadDirection(FVector BaseDirection);
-
-		
+	UPROPERTY()
+	class AWeaponBase* CurrentWeapon;
 };

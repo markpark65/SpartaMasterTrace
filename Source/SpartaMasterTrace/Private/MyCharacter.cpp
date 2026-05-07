@@ -7,7 +7,7 @@
 
 AMyCharacter::AMyCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
     GetCapsuleComponent()->InitCapsuleSize(40.f, 90.f);
 
     FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
@@ -17,7 +17,7 @@ AMyCharacter::AMyCharacter()
 
     FirstPersonCamera->bUsePawnControlRotation = true;
 
-    GetMesh()->SetupAttachment(FirstPersonCamera);
+    GetMesh()->SetupAttachment(GetCapsuleComponent());
     GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -150.f));
 
     GetCharacterMovement()->MaxWalkSpeed = 600.f;
@@ -46,6 +46,8 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
         EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AMyCharacter::Attack);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMyCharacter::StartSprint);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMyCharacter::StopSprint);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AMyCharacter::StartAim);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AMyCharacter::StopAim);
     }
 }
 void AMyCharacter::Move(const FInputActionValue& Value)
@@ -93,6 +95,27 @@ void AMyCharacter::Attack()
 {
     if (WeaponComp)
     {
-        WeaponComp->FireShotgun();
+        WeaponComp->Fire();
+    }
+}
+
+void AMyCharacter::StartAim()
+{
+    TargetFOV = AimFOV;
+}
+
+void AMyCharacter::StopAim()
+{
+    TargetFOV = DefaultFOV;
+}
+
+void AMyCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (FirstPersonCamera && FirstPersonCamera->FieldOfView != TargetFOV)
+    {
+        float NewFOV = FMath::FInterpTo(FirstPersonCamera->FieldOfView, TargetFOV, DeltaTime, 15.f);
+        FirstPersonCamera->SetFieldOfView(NewFOV);
     }
 }

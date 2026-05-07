@@ -16,7 +16,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
-
+    virtual void Tick(float DeltaTime) override;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     class UCameraComponent* FirstPersonCamera;
 
@@ -33,6 +33,9 @@ protected:
     class UInputAction* AttackAction;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     class UInputAction* SprintAction;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+    class UInputAction* AimAction;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     UWeaponComponent* WeaponComp;
 
@@ -45,6 +48,14 @@ protected:
     void StopSprint();
 
     void Attack();
+    void StartAim();
+    void StopAim();
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+private:
+    // 시야각변수
+    float DefaultFOV = 90.f; // 기본
+    float AimFOV = 60.f;     // 조준 시
+    float TargetFOV = 90.f;
 };

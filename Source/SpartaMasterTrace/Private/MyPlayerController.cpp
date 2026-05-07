@@ -8,6 +8,7 @@ AMyPlayerController::AMyPlayerController()
     , LookAction(nullptr)
     , SprintAction(nullptr)
     , AttackAction(nullptr)
+    , AimAction(nullptr)
 {
 }
 
