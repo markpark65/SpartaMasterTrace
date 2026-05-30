@@ -2,6 +2,12 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MyActorComponent.h"
+#include "MyHUDWidget.h"
+#include "MyQuestComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "TestMyInterface.h"
+#include "ItemBase.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
@@ -25,11 +31,32 @@ AMyCharacter::AMyCharacter()
     GetCharacterMovement()->AirControl = 0.35f;
 
     WeaponComp = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComp"));
+    HealthComponent = CreateDefaultSubobject<UMyActorComponent>(TEXT("HealthComponent"));
+    QuestComponent = CreateDefaultSubobject<UMyQuestComponent>(TEXT("QuestComponent"));
 }
 
 void AMyCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (HUDWidgetClass)
+    {
+        HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
+        if (HUDWidget)
+        {
+            HUDWidget->AddToViewport();
+        }
+    }
+
+    if (HealthComponent)
+    {
+        HealthComponent->OnHealthDamaged.AddDynamic(this, &AMyCharacter::OnUpdateHealthUI);
+        HealthComponent->OnHealthDead.AddDynamic(this, &AMyCharacter::OnPlayerDeath);
+    }
+    if (QuestComponent)
+    {
+        QuestComponent->OnQuestProgressUpdated.AddDynamic(this, &AMyCharacter::OnUpdateQuestUI);
+    }
 }
 
 void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -117,5 +144,64 @@ void AMyCharacter::Tick(float DeltaTime)
     {
         float NewFOV = FMath::FInterpTo(FirstPersonCamera->FieldOfView, TargetFOV, DeltaTime, 15.f);
         FirstPersonCamera->SetFieldOfView(NewFOV);
+    }
+}
+
+void AMyCharacter::OnPlayerDeath(AController* InstigatorController)
+{
+    TArray<AActor*> AllItems;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemBase::StaticClass(), AllItems);
+
+    for (AActor* ItemActor : AllItems)
+    {
+        if (ItemActor)
+        {
+            ItemActor->Destroy();
+        }
+    }
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("플레이어 사망: 모든 아이템 제거됨"));
+    }
+
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        DisableInput(PC);
+    }
+
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+    GetMesh()->SetSimulatePhysics(true);
+
+    // 무기가 있다면 무기도 떨어뜨리거나 숨기기
+    if (WeaponComp)
+    {
+        WeaponComp->Deactivate();
+    }
+    //Destroy(); 
+}
+
+void AMyCharacter::OnUpdateHealthUI(float CurrentHealth, float MaxHealth, float HealthChange)
+{
+    UE_LOG(LogTemp, Warning, TEXT("UI 업데이트! 현재 체력: %f / %f"), CurrentHealth, MaxHealth);
+
+    if (HUDWidget)
+    {
+        UMyHUDWidget* MyHUD = Cast<UMyHUDWidget>(HUDWidget);
+
+        if (MyHUD)
+        {
+            MyHUD->UpdateHealth(CurrentHealth, MaxHealth);
+        }
+    }
+}
+void AMyCharacter::OnUpdateQuestUI(int32 Current, int32 Target)
+{
+    if (HUDWidget)
+    {
+        if (UMyHUDWidget* MyHUD = Cast<UMyHUDWidget>(HUDWidget))
+        {
+            MyHUD->UpdateQuest(Current, Target);
+        }
     }
 }

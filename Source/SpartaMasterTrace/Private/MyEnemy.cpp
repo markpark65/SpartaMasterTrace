@@ -1,4 +1,5 @@
 ﻿#include "MyEnemy.h"
+#include "MyGameState.h"
 #include "DrawDebugHelpers.h"
 
 AMyEnemy::AMyEnemy()
@@ -22,7 +23,15 @@ float AMyEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, 
             FString::Printf(TEXT("데미지 받음! 남은 HP: %.1f"), Health));
     }
 
-    if (Health <= 0.f) Die();
+    if (Health <= 0.f)
+    {
+        if (AMyGameState* GS = Cast<AMyGameState>(GetWorld()->GetGameState()))
+        {
+            GS->OnMonsterKilledEvent.Broadcast(EventInstigator);
+        }
+
+        Die();
+    }
     return ActualDamage;
 }
 

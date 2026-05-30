@@ -1,0 +1,40 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "MyTestActor.generated.h"
+
+UCLASS()
+class SPARTAMASTERTRACE_API AMyTestActor : public AActor
+{
+	GENERATED_BODY()
+	
+public:	
+	// Sets default values for this actor's properties
+	AMyTestActor();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	//소프트 레퍼런스-> 동기로드
+	UPROPERTY(EditAnywhere, Category = " Setting")
+
+	TSoftObjectPtr<UStaticMesh> MySoftMesh;
+
+
+
+	void LoadWithSoftPtr();
+	
+	// 소프트 레퍼런스 -> 비동기로드
+	void MyOnLoadComplete();
+	
+
+
+};

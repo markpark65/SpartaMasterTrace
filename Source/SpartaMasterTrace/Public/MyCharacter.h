@@ -3,7 +3,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "MyActorComponent.h"
 #include "WeaponComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "MyCharacter.generated.h"
 
 UCLASS()
@@ -19,6 +21,9 @@ protected:
     virtual void Tick(float DeltaTime) override;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     class UCameraComponent* FirstPersonCamera;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UMyActorComponent* HealthComponent;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     class UInputMappingContext* DefaultMappingContext;
@@ -39,6 +44,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
     UWeaponComponent* WeaponComp;
 
+    UFUNCTION()
+    void OnPlayerDeath(AController* InstigatorController);
+
     void Move(const FInputActionValue& Value);
     void Look(const FInputActionValue& Value);
     void StartJump();
@@ -53,6 +61,21 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    UPROPERTY(EditAnywhere, Category = "UI")
+    TSubclassOf<UUserWidget> HUDWidgetClass;
+
+    UPROPERTY()
+    UUserWidget* HUDWidget;
+
+    UFUNCTION()
+    void OnUpdateHealthUI(float CurrentHealth, float MaxHealth, float HealthChange);
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    class UMyQuestComponent* QuestComponent;
+
+    // UI 갱신 함수 추가
+    UFUNCTION()
+    void OnUpdateQuestUI(int32 Current, int32 Target);
 private:
     // 시야각변수
     float DefaultFOV = 90.f; // 기본
