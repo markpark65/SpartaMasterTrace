@@ -14,7 +14,7 @@ class SPARTAMASTERTRACE_API UPooledObject : public UActorComponent
 
 public:
 	
-	void Init(class AMyObjectPool* Owner);
+	void Init(class UMyObjectPoolComponent* Owner);
 
 	UFUNCTION(BlueprintCallable)
 	void RecycleSelf();
@@ -23,7 +23,7 @@ public:
 	bool bIsPoolActive;
 
 private:
-	TObjectPtr<class AMyObjectPool> ObjectPool;
+	TObjectPtr<class UMyObjectPoolComponent> ObjectPool;
 
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 };
